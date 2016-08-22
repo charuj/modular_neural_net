@@ -2,7 +2,7 @@
 
 A modular, fully-connected neural network that can be scaled up to have an arbitrary number of hidden layers.
 
-Dependencies: numpy, tensorflow
+Dependencies: Tensorflow
 
 Features:
 - ReLU non-linearities (can easily be swapped out)
@@ -20,7 +20,6 @@ The architecture of this network will be:
 
 '''
 
-import numpy as np
 import tensorflow as tf
 
 class config(object):
@@ -39,7 +38,7 @@ class config(object):
     '''
 
     num_layers= 5
-    hidden_dims=
+    hidden_size=
     input_dims = 28 * 28 # MNIST data is 28 x 28 pixels
     num_classes = 10 # 10 classes in MNIST
     keep_prob=
@@ -56,4 +55,16 @@ class modular_net():
         self.targets= tf.placeholder(tf.int32, [None, config.num_classes])
 
 # Todo: variable scope to scale up ??
+
+        def net()
+        with tf.variable_scope('neuralnet-'):
+            ''' I'm using variable_scope to make it easier to scale up the num_layers
+            (which really means scaling up the weights and biases)
+            '''
+
+            # Create weight variables, using random_normal initializer (this can be changed!)
+            weights= tf.get_variable('weights',[config.hidden_size, config.input_dims], dtype= tf.float32, initializer=tf.random_normal_initializer())
+
+            # Create biases, initalize to value of 0
+            biases = tf.get_variable('biases',config.input_dims, dtype=tf.float32, initializer=tf.constant_initializer(0.0))
 
