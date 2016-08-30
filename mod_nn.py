@@ -17,6 +17,7 @@ The architecture of this network will be:
     batch norm and dropout are optional
     {...} is repeated (L-1) times
 
+* Affine: no non-linear activation, i.e. just the dot product between input and weights
 
 '''
 
@@ -47,16 +48,52 @@ class config(object):
 
 class modular_net():
     def __init__(self, config):
-        hidden_dims= config.hidden_dims
+        hidden_size= config.hidden_size
         num_layers= config.num_layers
+        num_classes= config.num_classes
 
         # Create placeholders for inputs and targets
         self.inputs= tf.placeholder(tf.float32, [None, config.input_dims])
         self.targets= tf.placeholder(tf.int32, [None, config.num_classes])
+        self.keep_prob= config.keep_prob
 
-# Todo: variable scope to scale up ??
+#TODO: Figure out how to make scalable; for now I will create a unit neural net cell and then pass the variables (created in variable scope) through it
 
-        def net()
+    def nn_cell(self, config, weights, biases, keep_prob):
+        '''
+        I'm trying to mimic BasicLSTMCell and multirnncell by creating a basic neural network cell that can be layered.
+        It uses batch normalization for the inputs and dropout.
+
+        Batch normalization is applied to the input.
+        Dropout is applied after the activation function (Relu)
+
+
+        :param inputs: matrix of inputs
+        :param weights: matrix of weighst
+        :param biases: matrix of biases
+                keep_prob: float, probability of keeping a neuron
+        :return: output matrix (pre-softmax), after dropout has been applied
+        '''
+
+        # create variable named "weights"
+
+        weights = tf.get_variable("weights", [config.hidden_size, config.num_classes ], initializer=tf.random_normal_initializer())
+        biases = tf.get_variable("biases", [config.num_classes], initializer=tf.constant_initializer(0.0))
+        self.logits= tf.matmul(self.inputs, weights) + biases # Affine Layer
+
+        # Batch Normalization
+        batch_mean, batch_variance= tf.nn.moments(self.logits, axes=[0,1,2])
+        gamma = tf.get_variable(tf.ones([config.hidden_size]))
+        beta = tf.get_variable(tf.zeros([config.hidden_size]))
+        bn = tf.nn.batch_norm_with_global_normalization(self.logits, batch_mean, batch_variance, beta=beta,gamma=gamma,variance_epsilon=1e-3)
+
+
+
+
+
+
+
+
         with tf.variable_scope('neuralnet-'):
             ''' I'm using variable_scope to make it easier to scale up the num_layers
             (which really means scaling up the weights and biases)
