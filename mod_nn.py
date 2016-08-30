@@ -75,21 +75,30 @@ class modular_net():
         :return: output matrix (pre-softmax), after dropout has been applied
         '''
 
-        # create variable named "weights"
 
-        weights = tf.get_variable("weights", [config.hidden_size, config.num_classes ], initializer=tf.random_normal_initializer())
-        biases = tf.get_variable("biases", [config.num_classes], initializer=tf.constant_initializer(0.0))
-        self.logits= tf.matmul(self.inputs, weights) + biases # Affine Layer
-
-        # Batch Normalization
-        batch_mean, batch_variance= tf.nn.moments(self.logits, axes=[0,1,2])
+        # Batch Normalization applied to inputs
+        batch_mean, batch_variance= tf.nn.moments(self.inputs, axes=[0,1,2])
         gamma = tf.get_variable(tf.ones([config.hidden_size]))
         beta = tf.get_variable(tf.zeros([config.hidden_size]))
-        bn = tf.nn.batch_norm_with_global_normalization(self.logits, batch_mean, batch_variance, beta=beta,gamma=gamma,variance_epsilon=1e-3)
+        bn = tf.nn.batch_norm_with_global_normalization(self.inputs, batch_mean, batch_variance, beta=beta,gamma=gamma,variance_epsilon=1e-3)
+
+        # create variable named "weights" and "biases"
+
+        weights = tf.get_variable("weights", [config.hidden_size, config.num_classes],
+                                  initializer=tf.random_normal_initializer())
+        biases = tf.get_variable("biases", [config.num_classes], initializer=tf.constant_initializer(0.0))
+
+        # Dropout applied after Relu
+        hidden_layer = tf.nn.relu((tf.matmul(bn, weights) + biases))
+        h_dropout = tf.nn.dropout(hidden_layer, self.keep_prob)
+
+
+        
 
 
 
 
+        #APPLY L2 REG TO LOSS
 
 
 
