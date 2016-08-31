@@ -95,18 +95,27 @@ class NN_Cell(object):
         hidden_layer = tf.nn.relu((tf.matmul(bn, weights) + biases))
         h_dropout = tf.nn.dropout(hidden_layer, self.keep_prob)
 
+    def input_size(self, cell):
+        """ calculate the size of the inputs of a cell"""
+
+        #TODO: how to calculate the size of the inputs? is it just tf.size(cell)?
+
+    def output_size(self, cell):
+        """ calculate the size of the outputs of a cell """
+        #TODO: how to calculate the size of the outputs?
 
 
-        with tf.variable_scope('neuralnet-'):
-            ''' I'm using variable_scope to make it easier to scale up the num_layers
-            (which really means scaling up the weights and biases)
-            '''
 
-            # Create weight variables, using random_normal initializer (this can be changed!)
-            weights= tf.get_variable('weights',[config.hidden_size, config.input_dims], dtype= tf.float32, initializer=tf.random_normal_initializer())
+    with tf.variable_scope('neuralnet-'):
+        ''' I'm using variable_scope to make it easier to scale up the num_layers
+        (which really means scaling up the weights and biases)
+        '''
 
-            # Create biases, initalize to value of 0
-            biases = tf.get_variable('biases',config.input_dims, dtype=tf.float32, initializer=tf.constant_initializer(0.0))
+        # Create weight variables, using random_normal initializer (this can be changed!)
+        weights= tf.get_variable('weights',[config.hidden_size, config.input_dims], dtype= tf.float32, initializer=tf.random_normal_initializer())
+
+        # Create biases, initalize to value of 0
+        biases = tf.get_variable('biases',config.input_dims, dtype=tf.float32, initializer=tf.constant_initializer(0.0))
 
 '''
 What I'm confused about:
@@ -153,9 +162,14 @@ class MultiNNCell (Cell_List):
 
         Args:
             cells: list of neural net cells that will be
-
-
+        Raises:
+            ValueError: if cells is empty (not allowed) or if their sizes don't match.
         """
+        if not cells:
+            raise ValueError("Must specify at least one cell for MultiNNCell")
+        for i in xrange(len(cells) -1):
+            if cells[i].output_size != cells[i+1].input_size:
+                raise ValueError("In MultiNNCell, the input size of next cell must be same as output size of previous cell")
 
 
 
