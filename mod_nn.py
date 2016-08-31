@@ -63,7 +63,7 @@ class NN_Cell(object):
 
     def __init__(self, net_params):
 
-    def cell(self, config, weights, biases, keep_prob):
+    def cell(self, config, inputs,keep_prob):
         '''
         This cell will be used in a way that mimics BasicLSTMCell and multirnncell.
 
@@ -80,10 +80,10 @@ class NN_Cell(object):
 
 
         # Batch Normalization applied to inputs
-        batch_mean, batch_variance= tf.nn.moments(self.inputs, axes=[0,1,2])
+        batch_mean, batch_variance= tf.nn.moments(inputs, axes=[0,1,2])
         gamma = tf.get_variable(tf.ones([config.hidden_size]))
         beta = tf.get_variable(tf.zeros([config.hidden_size]))
-        bn = tf.nn.batch_norm_with_global_normalization(self.inputs, batch_mean, batch_variance, beta=beta,gamma=gamma,variance_epsilon=1e-3)
+        bn = tf.nn.batch_norm_with_global_normalization(inputs, batch_mean, batch_variance, beta=beta,gamma=gamma,variance_epsilon=1e-3)
 
         # create variable named "weights" and "biases"
 
@@ -93,7 +93,9 @@ class NN_Cell(object):
 
         # Dropout applied after Relu
         hidden_layer = tf.nn.relu((tf.matmul(bn, weights) + biases))
-        h_dropout = tf.nn.dropout(hidden_layer, self.keep_prob)
+        h_dropout = tf.nn.dropout(hidden_layer, self.keep_prob) # the predictions
+
+        return h_dropout
 
     def input_size(self, cell):
         """ calculate the size of the inputs of a cell"""
@@ -170,6 +172,32 @@ class MultiNNCell (Cell_List):
         for i in xrange(len(cells) -1):
             if cells[i].output_size != cells[i+1].input_size:
                 raise ValueError("In MultiNNCell, the input size of next cell must be same as output size of previous cell")
+        self.cells= cells
+
+
+    def sequence(self, inputs):
+        """ Makes the sequence of cells (i.e. the ACTUAL neural network, allowing for the flow of outputs and inputs
+
+        Args:
+            inputs: first batch of inputs to be fed into neural network)
+
+        Returns:
+            output of neural network, which can be used for softmax cross entropy loss etc.
+        """
+
+        # TODO: do i need to use variable scope ?
+
+        cur_inp= inputs
+        for i, cell in enumerate(self.cells):
+            cur_inp= cell(cur_inp)
+        return cur_inp
+
+    
+
+
+
+
+
 
 
 
