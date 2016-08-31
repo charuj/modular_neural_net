@@ -14,7 +14,7 @@ The architecture of this network will be:
 {affine - [batch_norm] - relu - [dropout]} x (L-1) - affine - softmax_loss_function
 
     L= number of layers
-    batch norm and dropout are optional
+
     {...} is repeated (L-1) times
 
 * Affine: no non-linear activation, i.e. just the dot product between input and weights
@@ -57,7 +57,6 @@ class net_params():
         self.targets= tf.placeholder(tf.int32, [None, config.num_classes])
         self.keep_prob= config.keep_prob
 
-#TODO: Figure out how to make scalable; for now I will create a unit neural net cell and then pass the variables (created in variable scope) through it
 
 class NN_Cell(object):
 
@@ -78,7 +77,6 @@ class NN_Cell(object):
         :return: output matrix (pre-softmax), after dropout has been applied
         '''
 
-
         # Batch Normalization applied to inputs
         batch_mean, batch_variance= tf.nn.moments(inputs, axes=[0,1,2])
         gamma = tf.get_variable(tf.ones([config.hidden_size]))
@@ -92,7 +90,7 @@ class NN_Cell(object):
         biases = tf.get_variable("biases", [config.num_classes], initializer=tf.constant_initializer(0.0))
 
         # Dropout applied after Relu
-        hidden_layer = tf.nn.relu((tf.matmul(bn, weights) + biases))
+        hidden_layer = tf.nn.relu((tf.matmul(bn, weights) + biases)) # Relu applied to logits
         h_dropout = tf.nn.dropout(hidden_layer, self.keep_prob) # the predictions
 
         return h_dropout
@@ -119,26 +117,6 @@ class NN_Cell(object):
         # Create biases, initalize to value of 0
         biases = tf.get_variable('biases',config.input_dims, dtype=tf.float32, initializer=tf.constant_initializer(0.0))
 
-'''
-What I'm confused about:
-- how to make the neural net scalable to an aribitrary number of layers
-
-Ideas:
-- mimic the multi rnn Cell function: it will take a list of neural net fully connected cells that will be composed om that order
-- how to make the list of cells?
-- i could enumerate [cell]*config.num_layers)
-- for i, cell in enumerate(self._cells):
-
-Pseudo Code :
-
-a= [cell]
-b=[]
-b.append(a * num_layers)
->> gives a list with num_layer repetitions of a
-
-
-
-'''
 
 class Cell_List(NN_Cell):
     """ Makes a list of num_layer numbered neural net cells that will be used in MultiNNCell"""
@@ -192,7 +170,9 @@ class MultiNNCell (Cell_List):
             cur_inp= cell(cur_inp)
         return cur_inp
 
-    
+
+
+
 
 
 
