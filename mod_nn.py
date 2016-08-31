@@ -46,7 +46,7 @@ class config(object):
     use_batch_norm = True
 
 
-class modular_net():
+class net_params():
     def __init__(self, config):
         hidden_size= config.hidden_size
         num_layers= config.num_layers
@@ -59,10 +59,13 @@ class modular_net():
 
 #TODO: Figure out how to make scalable; for now I will create a unit neural net cell and then pass the variables (created in variable scope) through it
 
-    def nn_cell(self, config, weights, biases, keep_prob):
+class NN_Cell(object):
+
+    def __init__(self, net_params):
+
+    def cell(self, config, weights, biases, keep_prob):
         '''
-        I'm trying to mimic BasicLSTMCell and multirnncell by creating a basic neural network cell that can be layered.
-        It uses batch normalization for the inputs and dropout.
+        This cell will be used in a way that mimics BasicLSTMCell and multirnncell.
 
         Batch normalization is applied to the input.
         Dropout is applied after the activation function (Relu)
@@ -93,15 +96,6 @@ class modular_net():
         h_dropout = tf.nn.dropout(hidden_layer, self.keep_prob)
 
 
-        
-
-
-
-
-        #APPLY L2 REG TO LOSS
-
-
-
 
         with tf.variable_scope('neuralnet-'):
             ''' I'm using variable_scope to make it easier to scale up the num_layers
@@ -113,4 +107,55 @@ class modular_net():
 
             # Create biases, initalize to value of 0
             biases = tf.get_variable('biases',config.input_dims, dtype=tf.float32, initializer=tf.constant_initializer(0.0))
+
+'''
+What I'm confused about:
+- how to make the neural net scalable to an aribitrary number of layers
+
+Ideas:
+- mimic the multi rnn Cell function: it will take a list of neural net fully connected cells that will be composed om that order
+- how to make the list of cells?
+- i could enumerate [cell]*config.num_layers)
+- for i, cell in enumerate(self._cells):
+
+Pseudo Code :
+
+a= [cell]
+b=[]
+b.append(a * num_layers)
+>> gives a list with num_layer repetitions of a
+
+
+
+'''
+
+class Cell_List(NN_Cell):
+    """ Makes a list of num_layer numbered neural net cells that will be used in MultiNNCell"""
+
+    def __init__(self, indivcell, config):
+        self.indivcell= indivcell= NN_Cell.cell() #todo: Can i just call the cell that was returned by NN_Cell
+        self.num_layers= num_layers= config.num_layers
+
+    def list(self):
+        """ Creating the list of sequential cells; in this version all the cells have the same architecture"""
+
+        self.cell_list= []
+        self.cell_list.append(self.indivcell * self.num_layers)
+
+        return self.cell_list
+
+
+class MultiNNCell (Cell_List):
+    """Neural network composed sequentially of multiple simple cells """
+
+    def __init__(self, cells):
+        """ Create a neural network composed of a number of sequential simple cells
+
+        Args:
+            cells: list of neural net cells that will be
+
+
+        """
+
+
 
