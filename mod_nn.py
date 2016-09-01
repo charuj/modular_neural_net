@@ -172,7 +172,20 @@ class MultiNNCell (Cell_List):
 
 
 
+'''
 
+IDEA
+
+Above i created a cell function, that I then replicated in a list
+
+What if i just made the weights and biases in a list (without variable_scope)
+I could put the parameters of each layer into a dictionary 
+
+
+
+
+
+'''
 
 
 
